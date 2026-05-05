@@ -1,0 +1,201 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+:root {
+  --bg-primary: #0B0F14;
+  --bg-secondary: #111921;
+  --bg-tertiary: #1A2433;
+  --bg-elevated: #1F2B3D;
+  --bg-surface: #243044;
+  --text-primary: #E8EAED;
+  --text-secondary: #9AA0A6;
+  --text-muted: #5F6368;
+  --text-dim: #3D4450;
+  --solar-high: #FFD54F;
+  --wind-high: #4FC3F7;
+  --flood-danger: #EF5350;
+  --accent-energy: #00E676;
+  --accent-energy-glow: rgba(0, 230, 118, 0.25);
+  --accent-warning: #FFC107;
+  --accent-danger: #FF1744;
+  --accent-info: #448AFF;
+  --accent-purple: #AB47BC;
+  --glass-bg: rgba(17, 25, 33, 0.88);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-highlight: rgba(255, 255, 255, 0.03);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+img, svg, a, div {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── Leaflet overrides ─── */
+.leaflet-container {
+  background: #0B0F14 !important;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.leaflet-control-layers {
+  background: rgba(17, 25, 33, 0.9) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 8px !important;
+  color: white !important;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+.leaflet-control-layers-list {
+  padding: 4px 8px;
+}
+
+.leaflet-control-layers label {
+  color: #E8EAED !important;
+  font-size: 12px;
+  padding: 2px 0;
+}
+
+.leaflet-control-layers-selector {
+  margin-right: 6px;
+}
+
+.leaflet-control-attribution {
+  background: rgba(17, 25, 33, 0.7) !important;
+  color: #5F6368 !important;
+  font-size: 9px !important;
+  backdrop-filter: blur(4px);
+}
+
+.leaflet-control-attribution a {
+  color: #9AA0A6 !important;
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3) !important;
+}
+
+.leaflet-control-zoom a {
+  background: rgba(17, 25, 33, 0.9) !important;
+  color: white !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(8px);
+  width: 32px !important;
+  height: 32px !important;
+  line-height: 32px !important;
+  font-size: 16px !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: rgba(30, 40, 55, 0.95) !important;
+}
+
+/* Infrastructure popup styling */
+.leaflet-popup-content-wrapper {
+  background: white !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+  padding: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 12px 16px !important;
+  font-size: 13px;
+}
+
+.leaflet-popup-tip {
+  background: white !important;
+}
+
+.leaflet-popup-close-button {
+  color: #6B7280 !important;
+  font-size: 18px !important;
+  padding: 6px 8px !important;
+}
+
+/* Infrastructure marker */
+.infra-marker {
+  background: none !important;
+  border: none !important;
+}
+
+/* ─── Power line animation ─── */
+@keyframes powerFlow {
+  0% { stroke-dashoffset: 28; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.power-line-animated {
+  animation: powerFlow 1.5s linear infinite;
+}
+
+/* ─── Marker pulse animation ─── */
+@keyframes markerPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 230, 118, 0.3), 0 2px 8px rgba(0,0,0,0.4); }
+  50% { box-shadow: 0 0 16px rgba(0, 230, 118, 0.5), 0 2px 12px rgba(0,0,0,0.4); }
+}
+
+/* ─── Glass panel ─── */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 var(--glass-highlight);
+}
+
+/* ─── Landing background ─── */
+.landing-bg {
+  background:
+    radial-gradient(ellipse 600px 400px at 20% 30%, rgba(0, 230, 118, 0.06), transparent),
+    radial-gradient(ellipse 500px 500px at 70% 60%, rgba(79, 195, 247, 0.05), transparent),
+    radial-gradient(ellipse 400px 600px at 50% 80%, rgba(171, 71, 188, 0.04), transparent),
+    var(--bg-primary);
+  animation: meshDrift 20s ease-in-out infinite alternate;
+}
+
+@keyframes meshDrift {
+  0% { background-position: 0% 0%, 0% 0%, 0% 0%; }
+  100% { background-position: 10% -10%, -10% 10%, 5% -5%; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.15); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-energy-glow); }
+  50% { box-shadow: 0 0 20px 4px var(--accent-energy-glow); }
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-surface); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
