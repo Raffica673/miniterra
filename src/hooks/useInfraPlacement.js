@@ -97,8 +97,14 @@ export function useInfraPlacement() {
 /**
  * Connection range in degrees (~500m at Santiago's latitude)
  * 1 degree latitude ≈ 111km, so 0.005° ≈ 550m
+ * 
+ * TRANSMISSION LINES act as CONNECTORS that EXTEND the grid reach:
+ * - Substations have base range of ~890m
+ * - Transmission lines placed between infrastructure EXPAND the connection radius
+ * - Each transmission tower extends the grid by its own range
  */
-const CONNECTION_RANGE = 0.008; // ~890m
+const CONNECTION_RANGE = 0.008; // ~890m base range
+const TRANSMISSION_EXTENSION_RANGE = 0.012; // ~1.3km - transmission lines extend further
 
 function getDistance(a, b) {
   return Math.sqrt(Math.pow(a.lat - b.lat, 2) + Math.pow(a.lng - b.lng, 2));
@@ -108,12 +114,14 @@ function getDistance(a, b) {
  * Recalculate which placements are connected to the grid.
  * A placement is "connected" if it's within range of a substation,
  * or within range of a transmission line that is itself connected.
+ * 
+ * UPDATED RULE: Substations can ONLY connect to transmission lines (not to other infrastructure directly)
  */
 function recalculateConnections(placements) {
   const substations = placements.filter(p => p.type === 'substation');
   const connectedSet = new Set(substations.map(s => s.id));
 
-  // BFS through transmission lines
+  // BFS through transmission lines - they EXTEND the grid reach
   let changed = true;
   while (changed) {
     changed = false;
@@ -121,8 +129,9 @@ function recalculateConnections(placements) {
       if (connectedSet.has(p.id)) continue;
       if (p.type !== 'transmission') continue;
 
+      // Transmission lines connect to substations or other connected transmission
       const isNearConnected = placements.some(c =>
-        connectedSet.has(c.id) && getDistance(p, c) <= CONNECTION_RANGE
+        connectedSet.has(c.id) && getDistance(p, c) <= TRANSMISSION_EXTENSION_RANGE
       );
 
       if (isNearConnected) {
@@ -132,14 +141,18 @@ function recalculateConnections(placements) {
     }
   }
 
-  // Now check all other infrastructure
+  // Now check all other infrastructure - they can ONLY connect to transmission lines (not substations directly)
   return placements.map(p => {
     if (p.type === 'substation') return { ...p, isConnected: true };
     if (connectedSet.has(p.id)) return { ...p, isConnected: true };
 
-    const isConnected = placements.some(c =>
-      connectedSet.has(c.id) && getDistance(p, c) <= CONNECTION_RANGE
-    );
+    // Check connection ONLY to transmission lines (substations no longer connect directly to other infrastructure)
+    const isConnected = placements.some(c => {
+      if (!connectedSet.has(c.id)) return false;
+      if (c.type !== 'transmission') return false; // Only transmission lines can connect to other infrastructure
+      const dist = getDistance(p, c);
+      return dist <= TRANSMISSION_EXTENSION_RANGE;
+    });
 
     return { ...p, isConnected };
   });

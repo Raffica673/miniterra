@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 
-const MODES = ['scout', 'build', 'report'];
-const MODE_LABELS = { scout: 'SCOUT', build: 'BUILD', report: 'REPORT' };
+const MODES = ['scout', 'build1', 'build2', 'report'];
+const MODE_LABELS = { scout: 'SCOUT', build1: 'BUILD 1', build2: 'BUILD 2', report: 'REPORT' };
 
 const SDG_BADGES = [
   { label: 'SDG 7', full: 'SDG 7 · Clean Energy', color: '#FCC30B' },

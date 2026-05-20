@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { getInfraDefinition } from '../data/infrastructure';
 
-const DEFAULT_BUDGET = 1000;
+const DEFAULT_BUDGET = 10000;
 
 export function useBudget() {
   const [totalBudget, setTotalBudget] = useState(DEFAULT_BUDGET);

@@ -1,10 +1,11 @@
 import { useApp } from '../../contexts/AppContext';
 
+// Simplified to 4 filters for G4 students
 const LAYERS = [
-  { id: 'solar', label: '☀ Solar', color: '#FFD54F' },
-  { id: 'wind', label: '💨 Wind', color: '#4FC3F7' },
-  { id: 'flood', label: '🌊 Flood', color: '#EF5350' },
-  { id: 'temp', label: '🌡 Temp', color: '#7E57C2' },
+  { id: 'solar', label: '☀️ Solar', color: '#FFD54F', description: 'Sun energy' },
+  { id: 'wind', label: '💨 Wind', color: '#4FC3F7', description: 'Air energy' },
+  { id: 'temperature', label: '🌡️ Temperature', color: '#FF7043', description: 'Heat levels' },
+  { id: 'hydro', label: '🌊 Water', color: '#00BCD4', description: 'Water energy' },
 ];
 
 export default function DataLayerToggles() {

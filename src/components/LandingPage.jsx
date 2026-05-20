@@ -136,7 +136,7 @@ export default function LandingPage() {
         fontSize: 11,
         color: 'var(--text-dim)',
       }}>
-        Built for Hackathon 2026 · Theme: Getting There
+        Built for Nido de Aguilas G4 changemakers
       </div>
     </motion.div>
   );

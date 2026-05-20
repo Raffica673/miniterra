@@ -10,7 +10,11 @@ export function calculateScore(placements, budget, totalBudget) {
 
   const solarFarms = placements.filter(p => p.type === 'solar');
   const windTurbines = placements.filter(p => p.type === 'wind');
+  const miniHydro = placements.filter(p => p.type === 'miniHydro');
+  const geothermal = placements.filter(p => p.type === 'geothermal');
+  const biomass = placements.filter(p => p.type === 'biomass');
   const batteries = placements.filter(p => p.type === 'battery');
+  const greenH2 = placements.filter(p => p.type === 'greenHydrogen');
 
   // Average efficiencies
   const avgSolarEff = solarFarms.length > 0
@@ -18,6 +22,15 @@ export function calculateScore(placements, budget, totalBudget) {
     : 50;
   const avgWindEff = windTurbines.length > 0
     ? windTurbines.reduce((s, p) => s + p.efficiency, 0) / windTurbines.length
+    : 50;
+  const avgHydroEff = miniHydro.length > 0
+    ? miniHydro.reduce((s, p) => s + p.efficiency, 0) / miniHydro.length
+    : 50;
+  const avgGeothermalEff = geothermal.length > 0
+    ? geothermal.reduce((s, p) => s + p.efficiency, 0) / geothermal.length
+    : 50;
+  const avgBiomassEff = biomass.length > 0
+    ? biomass.reduce((s, p) => s + p.efficiency, 0) / biomass.length
     : 50;
 
   // Flood safety: average flood risk of all placements
@@ -32,7 +45,6 @@ export function calculateScore(placements, budget, totalBudget) {
   const budgetEff = totalBudget > 0 ? (budget / totalBudget) * 100 : 100;
 
   // Energy calculations (based on real capacity factors)
-  // Santiago solar capacity factor: ~20-25%, wind: ~25-35% (varies by site)
   const solarMW = solarFarms.reduce((s, p) => {
     const def = getInfraDefinition('solar');
     return s + (def.mw * p.efficiency / 100);
@@ -41,14 +53,27 @@ export function calculateScore(placements, budget, totalBudget) {
     const def = getInfraDefinition('wind');
     return s + (def.mw * p.efficiency / 100);
   }, 0);
-  const totalMW = solarMW + windMW;
+  const hydroMW = miniHydro.reduce((s, p) => {
+    const def = getInfraDefinition('miniHydro');
+    return s + (def.mw * p.efficiency / 100);
+  }, 0);
+  const geothermalMW = geothermal.reduce((s, p) => {
+    const def = getInfraDefinition('geothermal');
+    return s + (def.mw * p.efficiency / 100);
+  }, 0);
+  const biomassMW = biomass.reduce((s, p) => {
+    const def = getInfraDefinition('biomass');
+    return s + (def.mw * p.efficiency / 100);
+  }, 0);
+  
+  const totalMW = solarMW + windMW + hydroMW + geothermalMW + biomassMW;
 
-  // Storage
-  const storageMWh = batteries.length * 200;
+  // Storage (batteries + green hydrogen)
+  const storageMWh = batteries.length * 200 + greenH2.length * 500; // H2 equivalent storage
 
   // CO2 avoided (tons/year) - Chile's grid emission factor: ~0.4 tCO2/MWh
-  // Annual hours: 8760, capacity factor average: ~0.25
-  const annualMWh = totalMW * 8760 * 0.25;
+  // Annual hours: 8760, capacity factor: solar/wind ~25%, hydro/geothermal/biomass ~60-80%
+  const annualMWh = (solarMW + windMW) * 8760 * 0.25 + (hydroMW + geothermalMW + biomassMW) * 8760 * 0.70;
   const co2Avoided = Math.round(annualMWh * 0.4);
 
   const overall = Math.round(

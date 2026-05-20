@@ -123,8 +123,43 @@ function AppContent() {
           </>
         )}
 
-        {/* ─── BUILD MODE ─── */}
-        {currentMode === 'build' && (
+        {/* ─── BUILD 1: SANDBOX MODE ─── */}
+        {currentMode === 'build1' && (
+          <>
+            <Toolbox
+              budget={budget}
+              totalBudget={totalBudget}
+              activeTool={activeTool}
+              onSelectTool={setActiveTool}
+              onBudgetChange={changeTotalBudget}
+            />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <RealMap
+                center={mapCenter}
+                zoom={mapZoom}
+                placements={placements}
+                activeOverlays={activeOverlays}
+                activeTool={activeTool}
+                onMapClick={handleMapClick}
+                onRemovePlacement={handleRemove}
+                onCursorMove={handleCursorMove}
+              />
+              <EnvironmentBar cursorPos={cursorPos} envData={cursorEnvData} activeTool={activeTool} />
+            </div>
+            <BuildSidebar
+              scores={scores}
+              placements={placements}
+              placementLog={placementLog}
+              onUndo={handleUndo}
+              onRemove={handleRemove}
+              onClear={() => { clearAll(); resetBudget(); }}
+              onNavigateReport={() => navigateTo('report')}
+            />
+          </>
+        )}
+
+        {/* ─── BUILD 2: CITY MODE ─── */}
+        {currentMode === 'build2' && (
           <>
             <Toolbox
               budget={budget}
@@ -170,7 +205,7 @@ function AppContent() {
                 interactive={false}
               />
               <div style={{ position: 'absolute', bottom: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 1000 }}>
-                <GhostButton onClick={() => navigateTo('build')} style={{ width: 'auto' }}>
+                <GhostButton onClick={() => navigateTo('build1')} style={{ width: 'auto' }}>
                   ← Back to Build
                 </GhostButton>
               </div>

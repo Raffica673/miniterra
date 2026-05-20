@@ -1,28 +1,42 @@
 import { useState } from 'react';
-import { REGIONS } from '../../data/regions';
+import { SCOUT_REGIONS, BUILD_REGIONS } from '../../data/regions';
 import { useApp } from '../../contexts/AppContext';
 import GlassPanel from '../shared/GlassPanel';
 
 const OVERLAY_OPTIONS = [
-  { id: 'solar', label: 'Solar Irradiance', icon: '☀️', color: '#FFD54F', desc: 'GHI kWh/m²/day' },
-  { id: 'wind', label: 'Wind Speed', icon: '💨', color: '#4FC3F7', desc: '80m hub height m/s' },
-  { id: 'temperature', label: 'Temperature', icon: '🌡️', color: '#FF7043', desc: 'Annual average °C' },
-  { id: 'flood', label: 'Flood Risk', icon: '🌊', color: '#EF5350', desc: 'Risk index 0-100' },
+  { id: 'solar', label: 'Solar', icon: '☀️', color: '#FFD54F', desc: 'Sun energy' },
+  { id: 'wind', label: 'Wind', icon: '💨', color: '#4FC3F7', desc: 'Air energy' },
+  { id: 'temperature', label: 'Temperature', icon: '🌡️', color: '#FF7043', desc: 'Heat levels' },
+  { id: 'hydro', label: 'Water', icon: '🌊', color: '#00BCD4', desc: 'Water energy' },
 ];
 
 export default function ScoutPanel({ onSelectRegion }) {
-  const { selectedRegion, setSelectedRegion, activeOverlays, toggleOverlay } = useApp();
+  const { selectedRegion, setSelectedRegion, activeOverlays, toggleOverlay, currentMode, navigateTo } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filtered = REGIONS.filter(r =>
-    r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Use SCOUT_REGIONS for scout mode, BUILD_REGIONS for build mode
+  const REGIONS = currentMode === 'scout' ? SCOUT_REGIONS : BUILD_REGIONS;
+
+  const filtered = searchQuery
+    ? REGIONS.filter(r =>
+        r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        r.description.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    : null;
 
   const handleSelectRegion = (region) => {
     setSelectedRegion(region);
     onSelectRegion?.(region);
   };
+
+  const toggleRegionGroup = (groupName) => {
+    setExpandedRegions(prev =>
+      prev.includes(groupName)
+        ? prev.filter(g => g !== groupName)
+        : [...prev, groupName]
+    );
+  };
+
 
   return (
     <GlassPanel style={{
@@ -44,8 +58,55 @@ export default function ScoutPanel({ onSelectRegion }) {
           letterSpacing: 3,
           marginBottom: 8,
         }}>
-          SCOUT · REGIONS
+          {currentMode === 'scout' ? 'SCOUT · REGIONS' : 'SELECT REGION'}
         </div>
+
+        {/* Build mode selector */}
+        {currentMode === 'scout' && (
+          <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+            <button
+              onClick={() => navigateTo('build1')}
+              style={{
+                flex: 1,
+                background: 'linear-gradient(135deg, #66BB6A, #43A047)',
+                border: 'none',
+                borderRadius: 8,
+                padding: '10px',
+                color: 'white',
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: 'pointer',
+                fontFamily: "'DM Sans', sans-serif",
+              }}
+            >
+              🏗️ BUILD 1: Sandbox
+            </button>
+            <button
+              onClick={() => {
+                if (!selectedRegion) {
+                  alert('Please select a city first!');
+                  return;
+                }
+                navigateTo('build2');
+              }}
+              style={{
+                flex: 1,
+                background: selectedRegion ? 'linear-gradient(135deg, #4FC3F7, #0288D1)' : 'var(--bg-tertiary)',
+                border: 'none',
+                borderRadius: 8,
+                padding: '10px',
+                color: 'white',
+                fontSize: 11,
+                fontWeight: 600,
+                cursor: selectedRegion ? 'pointer' : 'not-allowed',
+                fontFamily: "'DM Sans', sans-serif",
+                opacity: selectedRegion ? 1 : 0.5,
+              }}
+            >
+              🌍 BUILD 2: {selectedRegion ? selectedRegion.name : 'Select City'}
+            </button>
+          </div>
+        )}
 
         {/* Search */}
         <input
@@ -69,14 +130,27 @@ export default function ScoutPanel({ onSelectRegion }) {
 
       {/* Region cards */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px' }}>
-        {filtered.map(region => (
-          <RegionCard
-            key={region.id}
-            region={region}
-            isSelected={selectedRegion?.id === region.id}
-            onSelect={() => handleSelectRegion(region)}
-          />
-        ))}
+        {filtered ? (
+          // Search results - flat list
+          filtered.map(region => (
+            <RegionCard
+              key={region.id}
+              region={region}
+              isSelected={selectedRegion?.id === region.id}
+              onSelect={() => handleSelectRegion(region)}
+            />
+          ))
+        ) : (
+          // Simple list for scout/build regions
+          REGIONS.map(region => (
+            <RegionCard
+              key={region.id}
+              region={region}
+              isSelected={selectedRegion?.id === region.id}
+              onSelect={() => handleSelectRegion(region)}
+            />
+          ))
+        )}
       </div>
 
       {/* Data layer toggles */}
@@ -98,8 +172,8 @@ export default function ScoutPanel({ onSelectRegion }) {
                 key={opt.id}
                 onClick={() => toggleOverlay(opt.id)}
                 style={{
-                  background: isActive ? `${opt.color}20` : 'var(--bg-tertiary)',
-                  border: `1px solid ${isActive ? opt.color + '60' : 'var(--glass-border)'}`,
+                  background: isActive ? `${opt.color}30` : 'var(--bg-tertiary)',
+                  border: `2px solid ${isActive ? opt.color : 'var(--glass-border)'}`,
                   borderRadius: 8,
                   padding: '8px 10px',
                   cursor: 'pointer',
@@ -108,6 +182,7 @@ export default function ScoutPanel({ onSelectRegion }) {
                   alignItems: 'flex-start',
                   gap: 2,
                   transition: 'all 200ms',
+                  boxShadow: isActive ? `0 0 12px ${opt.color}40` : 'none',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>

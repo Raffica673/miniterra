@@ -106,6 +106,12 @@ function DataOverlayLayer({ type, opacity = 0.35 }) {
             const g = t < 0.5 ? 200 * t * 2 : 255 - 310 * (t - 0.5);
             const b = t < 0.5 ? 255 - 200 * t : 155 - 310 * (t - 0.5);
             color = `rgba(${Math.round(Math.max(0, r))},${Math.round(Math.max(0, g))},${Math.round(Math.max(0, b))},0.5)`;
+          } else if (type === 'hydro') {
+            // Hydro potential based on elevation (higher = better for hydro)
+            const envData = getEnvironmentalData(lat, lng);
+            const elevation = envData.elevation;
+            const t = Math.max(0, Math.min(1, (elevation - 200) / 2000));
+            color = `rgba(${Math.round(0 + 100 * t)},${Math.round(150 + 88 * t)},${Math.round(212 - 50 * t)},${0.2 + 0.5 * t})`;
           } else if (type === 'flood') {
             const risk = getFloodRisk(lat, lng);
             const t = risk / 100;
@@ -222,8 +228,22 @@ export default function RealMap({
           <LayersControl.BaseLayer name="Topographic">
             <TileLayer
               url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-              attribution='&copy; OpenTopoMap'
+              attribution='&copy; OpenTopoMap contributors'
               maxZoom={17}
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Terrain (USGS)">
+            <TileLayer
+              url="https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}"
+              attribution='USGS'
+              maxZoom={16}
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Elevation Contours">
+            <TileLayer
+              url="https://{s}.tile.thunderforest.com/landscape/{z}/{x}/{y}.png?apikey=YOUR_API_KEY"
+              attribution='&copy; Thunderforest, &copy; OpenStreetMap contributors'
+              maxZoom={18}
             />
           </LayersControl.BaseLayer>
         </LayersControl>
@@ -242,7 +262,7 @@ export default function RealMap({
         {activeOverlays.includes('solar') && <DataOverlayLayer type="solar" opacity={0.3} />}
         {activeOverlays.includes('wind') && <DataOverlayLayer type="wind" opacity={0.3} />}
         {activeOverlays.includes('temperature') && <DataOverlayLayer type="temperature" opacity={0.3} />}
-        {activeOverlays.includes('flood') && <DataOverlayLayer type="flood" opacity={0.35} />}
+        {activeOverlays.includes('hydro') && <DataOverlayLayer type="hydro" opacity={0.35} />}
 
         {/* Click handler */}
         {interactive && <MapClickHandler activeTool={activeTool} onMapClick={onMapClick} enabled={!!activeTool} />}
@@ -250,7 +270,7 @@ export default function RealMap({
         {/* Cursor tracker */}
         {interactive && onCursorMove && <CursorTracker onMove={onCursorMove} />}
 
-        {/* Connection range indicators for substations */}
+        {/* Connection range indicators for substations and transmission lines */}
         {showRangeFor && placements.filter(p => p.type === 'substation').map(p => (
           <Circle
             key={`range-${p.id}`}
@@ -262,6 +282,21 @@ export default function RealMap({
               fillColor: '#00E676',
               fillOpacity: 0.05,
               dashArray: '6,4',
+            }}
+          />
+        ))}
+        {/* Transmission lines show EXTENDED range - they act as grid connectors */}
+        {showRangeFor && placements.filter(p => p.type === 'transmission').map(p => (
+          <Circle
+            key={`range-${p.id}`}
+            center={[p.lat, p.lng]}
+            radius={1330}
+            pathOptions={{
+              color: '#4FC3F7',
+              weight: 1,
+              fillColor: '#4FC3F7',
+              fillOpacity: 0.03,
+              dashArray: '8,6',
             }}
           />
         ))}

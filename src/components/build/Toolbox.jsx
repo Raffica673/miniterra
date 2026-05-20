@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { INFRASTRUCTURE } from '../../data/infrastructure';
 import GlassPanel from '../shared/GlassPanel';
+import EducationalPopup from '../shared/EducationalPopup';
 
 export default function Toolbox({ budget, totalBudget, activeTool, onSelectTool, onBudgetChange }) {
+  const [showEducationalPopup, setShowEducationalPopup] = useState(null);
+  const [viewedInfraTypes, setViewedInfraTypes] = useState(new Set());
   const pct = budget / totalBudget;
   const budgetColor = pct > 0.6 ? '#00E676' : pct > 0.3 ? '#FFC107' : '#FF1744';
   const [showBudgetEdit, setShowBudgetEdit] = useState(false);
 
   const categories = [
-    { key: 'generation', label: 'GENERATION', items: INFRASTRUCTURE.filter(i => i.category === 'generation') },
-    { key: 'grid', label: 'GRID', items: INFRASTRUCTURE.filter(i => i.category === 'grid') },
-    { key: 'storage', label: 'STORAGE', items: INFRASTRUCTURE.filter(i => i.category === 'storage') },
-    { key: 'monitoring', label: 'MONITORING', items: INFRASTRUCTURE.filter(i => i.category === 'monitoring') },
-    { key: 'protection', label: 'PROTECTION', items: INFRASTRUCTURE.filter(i => i.category === 'protection') },
-  ];
+    { key: 'generation', label: 'POWER PLANTS', items: INFRASTRUCTURE.filter(i => i.category === 'generation') },
+    { key: 'grid', label: 'CONNECTIONS', items: INFRASTRUCTURE.filter(i => i.category === 'grid') },
+  ].filter(cat => cat.items.length > 0);
 
   return (
     <GlassPanel style={{
@@ -88,7 +88,7 @@ export default function Toolbox({ budget, totalBudget, activeTool, onSelectTool,
             <input
               type="range"
               min={200}
-              max={5000}
+              max={10000}
               step={100}
               value={totalBudget}
               onChange={(e) => onBudgetChange(parseInt(e.target.value))}
@@ -97,7 +97,7 @@ export default function Toolbox({ budget, totalBudget, activeTool, onSelectTool,
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 9, color: 'var(--text-muted)' }}>
               <span>200</span>
               <span style={{ color: budgetColor, fontWeight: 700 }}>{totalBudget} units</span>
-              <span>5000</span>
+              <span>10000</span>
             </div>
           </div>
         )}
@@ -108,15 +108,21 @@ export default function Toolbox({ budget, totalBudget, activeTool, onSelectTool,
         <div style={{
           margin: '8px 12px',
           padding: '10px 14px',
-          background: 'rgba(0,230,118,0.1)',
-          border: '1px solid rgba(0,230,118,0.3)',
+          background: `${INFRASTRUCTURE.find(i => i.type === activeTool)?.themeColor}15`,
+          border: `2px solid ${INFRASTRUCTURE.find(i => i.type === activeTool)?.themeColor}`,
           borderRadius: 8,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          boxShadow: `0 0 20px ${INFRASTRUCTURE.find(i => i.type === activeTool)?.glowColor}`,
         }}>
           <div>
-            <div style={{ fontSize: 10, color: '#00E676', fontFamily: "'Space Mono', monospace", letterSpacing: 1 }}>
+            <div style={{ 
+              fontSize: 10, 
+              color: INFRASTRUCTURE.find(i => i.type === activeTool)?.themeColor, 
+              fontFamily: "'Space Mono', monospace", 
+              letterSpacing: 1 
+            }}>
               PLACING MODE
             </div>
             <div style={{ fontSize: 12, color: 'white', fontFamily: "'DM Sans', sans-serif", fontWeight: 600 }}>
@@ -163,7 +169,16 @@ export default function Toolbox({ budget, totalBudget, activeTool, onSelectTool,
               return (
                 <button
                   key={infra.type}
-                  onClick={() => canAfford && onSelectTool(isActive ? null : infra.type)}
+                  onClick={() => {
+                    if (!canAfford) return;
+                    // Show educational popup on first click
+                    if (!viewedInfraTypes.has(infra.type) && infra.educationalInfo) {
+                      setShowEducationalPopup(infra);
+                      setViewedInfraTypes(new Set([...viewedInfraTypes, infra.type]));
+                    } else {
+                      onSelectTool(isActive ? null : infra.type);
+                    }
+                  }}
                   style={{
                     width: '100%',
                     display: 'flex',
@@ -172,14 +187,29 @@ export default function Toolbox({ budget, totalBudget, activeTool, onSelectTool,
                     padding: '10px 12px',
                     marginBottom: 4,
                     borderRadius: 8,
-                    border: `1px solid ${isActive ? infra.themeColor + '60' : 'var(--glass-border)'}`,
-                    background: isActive ? `${infra.themeColor}15` : 'var(--bg-tertiary)',
+                    border: `2px solid ${isActive ? infra.themeColor : 'var(--glass-border)'}`,
+                    background: isActive ? `${infra.themeColor}25` : 'var(--bg-tertiary)',
                     cursor: canAfford ? 'pointer' : 'not-allowed',
                     opacity: canAfford ? 1 : 0.4,
                     transition: 'all 200ms',
                     textAlign: 'left',
+                    boxShadow: isActive ? `0 0 15px ${infra.glowColor}` : 'none',
+                    position: 'relative',
                   }}
                 >
+                  {isActive && (
+                    <div style={{
+                      position: 'absolute',
+                      top: 6,
+                      right: 6,
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: infra.themeColor,
+                      boxShadow: `0 0 8px ${infra.themeColor}`,
+                      animation: 'pulse 2s ease-in-out infinite',
+                    }} />
+                  )}
                   <span style={{ fontSize: 20, flexShrink: 0 }}>{infra.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
@@ -212,6 +242,17 @@ export default function Toolbox({ budget, totalBudget, activeTool, onSelectTool,
           </div>
         ))}
       </div>
+
+      {/* Educational Popup */}
+      {showEducationalPopup && (
+        <EducationalPopup
+          infraType={showEducationalPopup}
+          onClose={() => {
+            setShowEducationalPopup(null);
+            onSelectTool(showEducationalPopup.type);
+          }}
+        />
+      )}
     </GlassPanel>
   );
 }
