@@ -13,7 +13,7 @@ export default function Toolbox({ budget, totalBudget, activeTool, onSelectTool,
     { key: 'storage', label: 'STORAGE', items: INFRASTRUCTURE.filter(i => i.category === 'storage') },
     { key: 'monitoring', label: 'MONITORING', items: INFRASTRUCTURE.filter(i => i.category === 'monitoring') },
     { key: 'protection', label: 'PROTECTION', items: INFRASTRUCTURE.filter(i => i.category === 'protection') },
-  ].filter(cat => cat.items.length > 0);
+  ];
 
   return (
     <GlassPanel style={{
@@ -79,6 +79,7 @@ export default function Toolbox({ budget, totalBudget, activeTool, onSelectTool,
           }} />
         </div>
 
+        {/* Budget editor */}
         {showBudgetEdit && onBudgetChange && (
           <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
             <label style={{ fontSize: 10, color: 'var(--text-secondary)', fontFamily: "'DM Sans', sans-serif" }}>

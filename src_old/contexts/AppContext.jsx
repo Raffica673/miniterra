@@ -7,7 +7,6 @@ export function AppProvider({ children }) {
   const [selectedRegion, setSelectedRegion] = useState(null);
   const [activeOverlays, setActiveOverlays] = useState([]);
   const [visitedModes, setVisitedModes] = useState(['landing']);
-  const [compareMode, setCompareMode] = useState(false);
 
   const navigateTo = useCallback((mode) => {
     setCurrentMode(mode);
@@ -28,7 +27,6 @@ export function AppProvider({ children }) {
       currentMode, navigateTo,
       selectedRegion, setSelectedRegion,
       activeOverlays, toggleOverlay,
-      compareMode, setCompareMode,
       visitedModes,
     }}>
       {children}

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { getInfraDefinition } from '../../data/infrastructure';
 
 /**
  * Sandbox Grid - A simple tutorial grid for Build 1 mode
@@ -61,28 +62,24 @@ export default function SandboxGrid({
 
   const getOverlayColor = (row, col) => {
     if (activeOverlays.length === 0) return null;
-    
-    // Simulate data layers
+
     const solarIntensity = Math.max(0, 1 - Math.abs(row - 10) / 15);
     const windIntensity = Math.max(0, 1 - Math.abs(col - 10) / 15);
     const tempIntensity = (row + col) / (GRID_SIZE * 2);
-    const hydroIntensity = isWater(row, col) ? 1 : Math.max(0, 0.5 - Math.abs(row - 10) / 20);
+    const floodIntensity = isWater(row, col) ? 1 : Math.max(0, 0.5 - Math.abs(row - 10) / 20);
 
     let overlayColor = null;
     if (activeOverlays.includes('solar')) {
       overlayColor = `rgba(255, 213, 79, ${solarIntensity * 0.4})`;
     }
     if (activeOverlays.includes('wind')) {
-      const alpha = windIntensity * 0.4;
-      overlayColor = overlayColor 
-        ? `rgba(79, 195, 247, ${alpha})` 
-        : `rgba(79, 195, 247, ${alpha})`;
+      overlayColor = `rgba(79, 195, 247, ${windIntensity * 0.4})`;
     }
-    if (activeOverlays.includes('temperature')) {
+    if (activeOverlays.includes('temp')) {
       overlayColor = `rgba(255, 112, 67, ${tempIntensity * 0.4})`;
     }
-    if (activeOverlays.includes('hydro')) {
-      overlayColor = `rgba(0, 188, 212, ${hydroIntensity * 0.5})`;
+    if (activeOverlays.includes('flood')) {
+      overlayColor = `rgba(239, 83, 80, ${floodIntensity * 0.5})`;
     }
 
     return overlayColor;
@@ -206,11 +203,7 @@ export default function SandboxGrid({
                       animation: 'pulse 2s ease-in-out infinite',
                     }}
                   >
-                    {placement.type === 'solar' && '☀️'}
-                    {placement.type === 'wind' && '💨'}
-                    {placement.type === 'hydro' && '🌊'}
-                    {placement.type === 'geothermal' && '🌋'}
-                    {placement.type === 'transmission' && '⚡'}
+                    {getInfraDefinition(placement.type)?.icon ?? '⚙️'}
                   </div>
                 )}
               </div>

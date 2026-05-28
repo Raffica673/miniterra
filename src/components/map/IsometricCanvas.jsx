@@ -242,60 +242,77 @@ export default function IsometricCanvas({
     
     function render(timestamp) {
       timeRef.current = timestamp / 1000; // Convert to seconds
-      
+
       ctx.clearRect(0, 0, width, height);
       ctx.save();
       ctx.translate(offsetX, offsetY);
-      
-      // Collect all drawable objects with painter's algorithm sorting
-      const drawables = [];
-      
+
+      // Two separate lists: tile bases and above-surface features.
+      // Drawing all bases first, then all features ensures that a
+      // tall object (tree/house) from a back tile is never painted
+      // over by the base of a front tile, and front features always
+      // appear on top of back features.
+      const tileDrawables = [];
+      const featureDrawables = [];
+
+      const sortFn = (a, b) => {
+        if (a.sortKey !== b.sortKey) return a.sortKey - b.sortKey;
+        return a.elevation - b.elevation;
+      };
+
       for (let y = 0; y < gridSize; y++) {
         for (let x = 0; x < gridSize; x++) {
           const tile = terrain[y][x];
           const isHovered = hoveredTile && hoveredTile.x === x && hoveredTile.y === y;
-          
+          const sortKey = y + x;
+          const elevation = tile.height;
+
+          tileDrawables.push({
+            sortKey,
+            elevation,
+            drawFn: (ctx) => drawTile(ctx, x, y, tile, isHovered, timeRef.current),
+          });
+
+          if (tile.type === TERRAIN.FOREST) {
+            featureDrawables.push({
+              sortKey,
+              elevation,
+              drawFn: (ctx) => drawTree(ctx, x, y, tile.height),
+            });
+          } else if (tile.type === TERRAIN.SETTLEMENT) {
+            featureDrawables.push({
+              sortKey,
+              elevation,
+              drawFn: (ctx) => drawHouse(ctx, x, y, tile.height),
+            });
+          }
+
           // Find placement for this tile
           const placement = placements.find(p => {
             const pX = Math.round((p.lat + 33.4489) / 0.001 + gridSize / 2);
             const pY = Math.round((p.lng + 70.6693) / 0.001 + gridSize / 2);
             return pX === x && pY === y;
           });
-          
-          drawables.push({
-            isoRow: y,
-            isoCol: x,
-            elevation: tile.height,
-            drawFn: (ctx) => {
-              drawTile(ctx, x, y, tile, isHovered, timeRef.current);
-              
-              // Draw terrain features immediately after tile
-              if (tile.type === TERRAIN.FOREST) {
-                drawTree(ctx, x, y, tile.height);
-              } else if (tile.type === TERRAIN.SETTLEMENT) {
-                drawHouse(ctx, x, y, tile.height);
-              }
-              
-              // Draw infrastructure immediately after terrain features
-              if (placement) {
-                drawInfrastructure(ctx, x, y, tile.height, placement.type, timeRef.current);
-              }
-            }
-          });
+
+          if (placement) {
+            featureDrawables.push({
+              sortKey,
+              elevation,
+              drawFn: (ctx) => drawInfrastructure(ctx, x, y, tile.height, placement.type, timeRef.current),
+            });
+          }
         }
       }
-      
-      // Sort by painter's algorithm: back-to-front
-      drawables.sort((a, b) => {
-        const sumA = a.isoRow + a.isoCol;
-        const sumB = b.isoRow + b.isoCol;
-        if (sumA !== sumB) return sumA - sumB;
-        return a.elevation - b.elevation;
-      });
-      
-      // Execute all draw functions in sorted order
-      drawables.forEach(drawable => drawable.drawFn(ctx));
-      
+
+      // Sort both passes back-to-front
+      tileDrawables.sort(sortFn);
+      featureDrawables.sort(sortFn);
+
+      // Pass 1: all tile bases (top face + side walls)
+      tileDrawables.forEach(d => d.drawFn(ctx));
+      // Pass 2: all above-surface features
+      featureDrawables.forEach(d => d.drawFn(ctx));
+
       ctx.restore();
       animationRef.current = requestAnimationFrame(render);
     }
@@ -318,23 +335,23 @@ export default function IsometricCanvas({
     
     // Draw column sides
     if (tile.height > 0 && tile.type !== TERRAIN.WATER) {
-      // Left face
+      // Left face: N→W edge of top diamond, extruded downward
       ctx.fillStyle = leftColor;
       ctx.beginPath();
-      ctx.moveTo(pos.x, pos.y + TILE_HEIGHT / 2);
-      ctx.lineTo(pos.x - TILE_WIDTH / 2, pos.y);
-      ctx.lineTo(pos.x - TILE_WIDTH / 2, pos.y + tile.height * TILE_DEPTH);
-      ctx.lineTo(pos.x, pos.y + TILE_HEIGHT / 2 + tile.height * TILE_DEPTH);
+      ctx.moveTo(pos.x, pos.y);
+      ctx.lineTo(pos.x - TILE_WIDTH / 2, pos.y + TILE_HEIGHT / 2);
+      ctx.lineTo(pos.x - TILE_WIDTH / 2, pos.y + TILE_HEIGHT / 2 + tile.height * TILE_DEPTH);
+      ctx.lineTo(pos.x, pos.y + tile.height * TILE_DEPTH);
       ctx.closePath();
       ctx.fill();
-      
-      // Right face
+
+      // Right face: N→E edge of top diamond, extruded downward
       ctx.fillStyle = rightColor;
       ctx.beginPath();
-      ctx.moveTo(pos.x, pos.y + TILE_HEIGHT / 2);
-      ctx.lineTo(pos.x + TILE_WIDTH / 2, pos.y);
-      ctx.lineTo(pos.x + TILE_WIDTH / 2, pos.y + tile.height * TILE_DEPTH);
-      ctx.lineTo(pos.x, pos.y + TILE_HEIGHT / 2 + tile.height * TILE_DEPTH);
+      ctx.moveTo(pos.x, pos.y);
+      ctx.lineTo(pos.x + TILE_WIDTH / 2, pos.y + TILE_HEIGHT / 2);
+      ctx.lineTo(pos.x + TILE_WIDTH / 2, pos.y + TILE_HEIGHT / 2 + tile.height * TILE_DEPTH);
+      ctx.lineTo(pos.x, pos.y + tile.height * TILE_DEPTH);
       ctx.closePath();
       ctx.fill();
     }
