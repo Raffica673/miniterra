@@ -28,7 +28,7 @@ export default function Toolbox({ budget, totalBudget, activeTool, onSelectTool,
       userSelect: 'none',
     }}>
       {/* Budget section */}
-      <div style={{ padding: '16px 20px 12px', borderBottom: '1px solid var(--glass-border)' }}>
+      <div className="budget-section" style={{ padding: '16px 20px 12px', borderBottom: '1px solid var(--glass-border)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
           <span style={{
             fontFamily: "'Space Mono', monospace",

@@ -39,7 +39,7 @@ export default function ScoutPanel({ onSelectRegion }) {
 
 
   return (
-    <GlassPanel style={{
+    <GlassPanel className="scout-panel" style={{
       width: 320,
       height: '100%',
       padding: 0,
@@ -63,7 +63,7 @@ export default function ScoutPanel({ onSelectRegion }) {
 
         {/* Build mode selector */}
         {currentMode === 'scout' && (
-          <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+          <div className="build-buttons" style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
             <button
               onClick={() => navigateTo('build1')}
               style={{
@@ -154,7 +154,7 @@ export default function ScoutPanel({ onSelectRegion }) {
       </div>
 
       {/* Data layer toggles */}
-      <div style={{ padding: '12px 16px', borderTop: '1px solid var(--glass-border)' }}>
+      <div className="data-layers" style={{ padding: '12px 16px', borderTop: '1px solid var(--glass-border)' }}>
         <div style={{
           fontFamily: "'Space Mono', monospace",
           fontSize: 10,

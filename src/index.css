@@ -2,28 +2,36 @@
 @import "leaflet/dist/leaflet.css";
 
 :root {
-  /* Light green theme for G4 students */
-  --bg-primary: #E8F5E9;
-  --bg-secondary: #C8E6C9;
-  --bg-tertiary: #A5D6A7;
-  --bg-elevated: #81C784;
-  --bg-surface: #66BB6A;
-  --text-primary: #1B5E20;
-  --text-secondary: #2E7D32;
-  --text-muted: #388E3C;
-  --text-dim: #4CAF50;
+  /* Light and dark green theme for G4 students with better contrast */
+  --bg-primary: #0B0F14;
+  --bg-secondary: #1B2A1F;
+  --bg-tertiary: #2E4A35;
+  --bg-elevated: #3D5A42;
+  --bg-surface: #1E3A24;
+  --text-primary: #E8F5E9;
+  --text-secondary: #C8E6C9;
+  --text-muted: #A5D6A7;
+  --text-dim: #81C784;
   --solar-high: #FFD54F;
   --wind-high: #4FC3F7;
   --flood-danger: #EF5350;
-  --accent-energy: #43A047;
-  --accent-energy-glow: rgba(67, 160, 71, 0.3);
+  --accent-energy: #66BB6A;
+  --accent-energy-glow: rgba(102, 187, 106, 0.3);
   --accent-warning: #FFC107;
   --accent-danger: #FF1744;
   --accent-info: #448AFF;
   --accent-purple: #AB47BC;
-  --glass-bg: rgba(200, 230, 201, 0.9);
-  --glass-border: rgba(46, 125, 50, 0.2);
-  --glass-highlight: rgba(255, 255, 255, 0.4);
+  --glass-bg: rgba(27, 42, 31, 0.9);
+  --glass-border: rgba(102, 187, 106, 0.2);
+  --glass-highlight: rgba(200, 230, 201, 0.1);
+  
+  /* Dark green accents for contrast */
+  --dark-green-primary: #1B5E20;
+  --dark-green-secondary: #2E7D32;
+  --dark-green-tertiary: #388E3C;
+  --light-green-primary: #66BB6A;
+  --light-green-secondary: #81C784;
+  --light-green-tertiary: #A5D6A7;
 }
 
 * {

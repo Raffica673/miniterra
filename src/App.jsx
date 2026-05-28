@@ -11,11 +11,14 @@ import LandingPage from './components/LandingPage';
 import TopNav from './components/TopNav';
 import ScoutPanel from './components/scout/ScoutPanel';
 import RealMap from './components/map/RealMap';
+import SandboxGrid from './components/map/SandboxGrid';
+import IsometricCanvas from './components/map/IsometricCanvas';
 import Toolbox from './components/build/Toolbox';
 import PlacementLog from './components/build/PlacementLog';
 import ReportPanel from './components/report/ReportPanel';
 import { GhostButton } from './components/shared/Button';
 import Toast from './components/shared/Toast';
+import TutorialSystem from './components/shared/TutorialSystem';
 
 function AppContent() {
   const { currentMode, activeOverlays, navigateTo, selectedRegion } = useApp();
@@ -126,35 +129,37 @@ function AppContent() {
         {/* ─── BUILD 1: SANDBOX MODE ─── */}
         {currentMode === 'build1' && (
           <>
-            <Toolbox
-              budget={budget}
-              totalBudget={totalBudget}
-              activeTool={activeTool}
-              onSelectTool={setActiveTool}
-              onBudgetChange={changeTotalBudget}
-            />
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-              <RealMap
-                center={mapCenter}
-                zoom={mapZoom}
-                placements={placements}
-                activeOverlays={activeOverlays}
+            <div className="toolbox">
+              <Toolbox
+                budget={budget}
+                totalBudget={totalBudget}
                 activeTool={activeTool}
-                onMapClick={handleMapClick}
-                onRemovePlacement={handleRemove}
-                onCursorMove={handleCursorMove}
+                onSelectTool={setActiveTool}
+                onBudgetChange={changeTotalBudget}
               />
-              <EnvironmentBar cursorPos={cursorPos} envData={cursorEnvData} activeTool={activeTool} />
             </div>
-            <BuildSidebar
-              scores={scores}
-              placements={placements}
-              placementLog={placementLog}
-              onUndo={handleUndo}
-              onRemove={handleRemove}
-              onClear={() => { clearAll(); resetBudget(); }}
-              onNavigateReport={() => navigateTo('report')}
-            />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }} className="sandbox-grid">
+              <IsometricCanvas
+                gridSize={20}
+                placements={placements}
+                activeTool={activeTool}
+                onGridClick={handleMapClick}
+                onRemovePlacement={handleRemove}
+                activeOverlays={activeOverlays}
+              />
+            </div>
+            <div className="score-panel">
+              <BuildSidebar
+                scores={scores}
+                placements={placements}
+                placementLog={placementLog}
+                onUndo={handleUndo}
+                onRemove={handleRemove}
+                onClear={() => { clearAll(); resetBudget(); }}
+                onNavigateReport={() => navigateTo('report')}
+              />
+            </div>
+            <TutorialSystem />
           </>
         )}
 
